@@ -28,12 +28,22 @@
 
 uint64_t timespec_to_ms(const struct timespec *ts)
 {
-    uint64_t seconds_ms, microseconds_ms;
+    uint64_t seconds_ms, nanoseconds_ms;
     seconds_ms = ts->tv_sec;
     seconds_ms *= 1000LLU;
-    microseconds_ms = ts->tv_nsec;
-    microseconds_ms /= 1000000LLU;
-    return seconds_ms + microseconds_ms;
+    nanoseconds_ms = ts->tv_nsec;
+    nanoseconds_ms /= 1000000LLU;
+    return seconds_ms + nanoseconds_ms;
+}
+
+uint64_t timespec_to_us(const struct timespec *ts)
+{
+    uint64_t seconds_us, nanoseconds_us;
+    seconds_us = ts->tv_sec;
+    seconds_us *= 1000000LLU;
+    nanoseconds_us = ts->tv_nsec;
+    nanoseconds_us /= 1000LLU;
+    return seconds_us + nanoseconds_us;
 }
 
 void ms_to_timespec(uint64_t ms, struct timespec *ts)
@@ -66,6 +76,22 @@ uint64_t now_ms(struct htrace_log *lg)
         return 0;
     }
     return timespec_to_ms(&ts);
+}
+
+uint64_t now_us(struct htrace_log *lg)
+{
+    struct timespec ts;
+    int err;
+
+    if (clock_gettime(CLOCK_REALTIME, &ts)) {
+        err = errno;
+        if (lg) {
+            htrace_log(lg, "clock_gettime(CLOCK_REALTIME) error: %d (%s)\n",
+                       err, terror(err));
+        }
+        return 0;
+    }
+    return timespec_to_us(&ts);
 }
 
 uint64_t monotonic_now_ms(struct htrace_log *lg)

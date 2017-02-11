@@ -63,7 +63,7 @@ struct htrace_scope* htrace_start_span(struct htracer *tracer,
         htrace_span_id_generate(&span_id, tracer->rnd,
                                 &cur_scope->span->span_id);
     }
-    span = htrace_span_alloc(desc, now_ms(tracer->lg), &span_id);
+    span = htrace_span_alloc(desc, now_us(tracer->lg), &span_id);
     if (!span) {
         htrace_log(tracer->lg, "htrace_span_alloc(desc=%s): OOM\n", desc);
         return NULL;
@@ -164,7 +164,7 @@ void htrace_scope_close(struct htrace_scope *scope)
         struct htrace_span *span = scope->span;
         if (span) {
             struct htrace_rcv *rcv = tracer->rcv;
-            span->end_ms = now_ms(tracer->lg);
+            span->end_ms = now_us(tracer->lg);
             rcv->ty->add_span(rcv, span);
             htrace_span_free(span);
         }

@@ -43,6 +43,16 @@ struct timeval;
 uint64_t timespec_to_ms(const struct timespec *ts);
 
 /**
+ * Convert a timespec into a time in microseconds.
+ *
+ * @param ts            The timespec to convert.
+ *
+ * @return              The current time in microseconds.
+ */
+uint64_t timespec_to_us(const struct timespec *ts);
+
+
+/**
  * Convert a time in milliseconds into a timespec.
  *
  * @param ms            The time in milliseconds to convert.
@@ -66,6 +76,16 @@ void ms_to_timeval(uint64_t ms, struct timeval *tv);
  * @return              The current wall-clock time in milliseconds.
  */
 uint64_t now_ms(struct htrace_log *log);
+
+/**
+ * Get the current wall-clock time in microseconds.
+ *
+ * @param log           The log to use for error messsages.
+ *
+ * @return              The current wall-clock time in microseconds.
+ */
+uint64_t now_us(struct htrace_log *log);
+
 
 /**
  * Get the current monotonic time in milliseconds.
