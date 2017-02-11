@@ -96,6 +96,56 @@ struct htrace_scope* htrace_start_span(struct htracer *tracer,
     return scope;
 }
 
+struct htrace_scope* htrace_start_span_from_parent(struct htracer *tracer,
+        struct htrace_span_id *parent, const char *desc)
+{
+    struct htrace_scope *cur_scope, *scope = NULL;
+    struct htrace_span *span = NULL;
+    struct htrace_span_id span_id;
+
+    // Validate the description string.  This ensures that it doesn't have
+    // anything silly in it like embedded double quotes, backslashes, or control
+    // characters.
+    if (!validate_json_string(tracer->lg, desc)) {
+        htrace_log(tracer->lg, "htrace_start_span_from_parent(desc=%s): "
+                   "invalid description string.\n", desc);
+        return NULL;
+    }
+
+    if (parent == NULL || (!parent->high && !parent->low)) {
+        return NULL;
+    }
+
+    htrace_span_id_generate(&span_id, tracer->rnd, parent);
+
+    span = htrace_span_alloc(desc, now_us(tracer->lg), &span_id);
+    if (!span) {
+        htrace_log(tracer->lg, "htrace_start_span(desc=%s): OOM\n", desc);
+        return NULL;
+    }
+
+    scope = malloc(sizeof(*scope));
+    if (!scope) {
+        htrace_span_free(span);
+        htrace_log(tracer->lg, "htrace_start_span_from_parent(desc=%s): "
+                               "OOM\n", desc);
+        return NULL;
+    }
+
+    scope->tracer = tracer;
+    scope->span = span;
+    span->parent.single = *parent;
+    span->num_parents = 1;
+
+    cur_scope = htracer_cur_scope(tracer);
+    if (htracer_push_scope(tracer, cur_scope, scope) != 0) {
+        htrace_span_free(span);
+        free(scope);
+        return NULL;
+    }
+    return scope;
+}
+
 struct htrace_span *htrace_scope_detach(struct htrace_scope *scope)
 {
     struct htrace_span *span = scope->span;

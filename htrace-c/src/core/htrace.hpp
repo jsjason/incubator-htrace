@@ -144,6 +144,7 @@ namespace htrace {
     }
 
   private:
+    friend class Scope;
     struct htrace_span_id id_;
   };
 
@@ -317,6 +318,16 @@ namespace htrace {
 
     Scope(Tracer &tracer, Sampler &smp, const std::string &name)
       : scope_(htrace_start_span(tracer.tracer_, smp.smp_, name.c_str())) {
+    }
+
+    Scope(Tracer &tracer, SpanId parent, const char *name)
+      : scope_(htrace_start_span_from_parent(
+        tracer.tracer_, &parent.id_, name)) {
+    }
+
+    Scope(Tracer &tracer, SpanId parent, const std::string &name)
+      : scope_(htrace_start_span_from_parent(
+        tracer.tracer_, &parent.id_, name.c_str())) {
     }
 
     ~Scope() {

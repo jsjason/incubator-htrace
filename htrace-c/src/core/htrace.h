@@ -181,6 +181,14 @@ extern  "C" {
     struct htrace_scope;
 
     /**
+     * The HTrace span id.
+     */
+    struct htrace_span_id {
+        uint64_t high;
+        uint64_t low;
+    };
+
+    /**
      * Create an HTrace conf object from a string.
      *
      * The string should be in the form:
@@ -313,6 +321,26 @@ extern  "C" {
                         struct htrace_sampler *sampler, const char *desc);
 
     /**
+     * Start a new trace span with a given parent span.
+     *
+     * You must call htrace_close_span on the scope object returned by this
+     * function.
+     *
+     * @param tracer    The htracer to use.  Must remain valid for the
+     *                      duration of the scope.
+     * @param parent    The span id of the parent span.
+     *                      If the parent id either NULL or invalid, then
+     *                      we do not create a new span.
+     * @param desc      The description of the trace span.  Will be deep-copied.
+     *
+     * @return          The trace scope.  NULL if we ran out of memory, or if we
+     *                      are not tracing.
+     */
+    struct htrace_scope* htrace_start_span_from_parent(struct htracer *tracer,
+                        struct htrace_span_id *parent,
+                        const char *desc);
+
+    /**
      * Detach the trace span from the given trace scope.
      *
      * @param scope     The trace scope, or NULL.
@@ -347,14 +375,6 @@ extern  "C" {
      *                      Then the scope and the span will be freed.
      */
     void htrace_scope_close(struct htrace_scope *scope);
-
-    /**
-     * The HTrace span id.
-     */
-    struct htrace_span_id {
-        uint64_t high;
-        uint64_t low;
-    };
 
     /**
      * Set a span ID to the invalid span ID by clearing it.
