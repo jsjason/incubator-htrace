@@ -148,7 +148,7 @@ namespace htrace {
     struct htrace_span_id id_;
   };
 
-  std::ostream &operator<<(std::ostream &oss, const SpanId &spanId) {
+  inline std::ostream &operator<<(std::ostream &oss, const SpanId &spanId) {
     oss << spanId.ToString();
     return oss;
   }
